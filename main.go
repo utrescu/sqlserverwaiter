@@ -18,18 +18,18 @@ var (
 	database = "BoIsBo"
 )
 
-// Repository defineix els mètodes de comprovació que hi ha d'haver
-type Repository interface {
+// RepositoryReady defines methods needed to this program
+type RepositoryReady interface {
 	IsAlive() error
 }
 
-// ServerConnection Defineix una connexió amb SQLServer
-type ServerConnection struct {
+// MsSQLConnection Defines a connection with Sql Server
+type MsSQLConnection struct {
 	connection *sql.DB
 }
 
-// IsAlive comprova si hi ha connexió amb la base de dades i si està activa
-func (m *ServerConnection) IsAlive() error {
+// IsAlive checks if Sql Server is up and accepts connections
+func (m *MsSQLConnection) IsAlive() error {
 
 	if err := m.connection.Ping(); err != nil {
 		if err.Error() == "EOF" {
@@ -50,22 +50,22 @@ func (m *ServerConnection) IsAlive() error {
 	return nil
 }
 
-// New crea una connexió amb la base de dades
-func New(connectionString string) (Repository, error) {
+// New creates a connection with Sql Server
+func New(connectionString string) (RepositoryReady, error) {
 	db, err := sql.Open("sqlserver", connectionString)
 	if err != nil {
 		return nil, err
 	}
 
-	sqlconnection := &ServerConnection{
+	sqlconnection := &MsSQLConnection{
 		connection: db,
 	}
 
 	return sqlconnection, nil
 }
 
-// doItOrFail
-func doItOrFail(timeout <-chan time.Time, connexio Repository) (bool, error) {
+// doItOrFail tries until database is ready or time is over
+func doItOrFail(timeout <-chan time.Time, connexio RepositoryReady) (bool, error) {
 
 	tick := time.Tick(500 * time.Millisecond)
 	for {
