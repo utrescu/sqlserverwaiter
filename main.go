@@ -18,7 +18,36 @@ var (
 	database = "BoIsBo"
 )
 
-func connectWithSQLServer() error {
+func connectWithSQLServer(connectionString string) error {
+
+	// connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s", server, user, password, port, database)
+	db, err := sql.Open("sqlserver", connectionString)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	if err := db.Ping(); err != nil {
+		if err.Error() == "EOF" {
+			return errors.New("Database not ready")
+		}
+		return errors.New("Unable to open connection")
+	}
+
+	// When Collation is not null database is ready
+	row := db.QueryRow("SELECT DATABASEPROPERTYEX('BoIsBo', 'Collation') AS Collation")
+	var collation string
+	err = row.Scan(&collation)
+	if err != nil {
+		return errors.New("Database not ready")
+	}
+
+	// Database ready!!
+	return nil
+}
+
+// doItOrFail
+func doItOrFail(timeout <-chan time.Time) (bool, error) {
 
 	query := url.Values{}
 	query.Add("database", database)
@@ -29,30 +58,6 @@ func connectWithSQLServer() error {
 		Host:     fmt.Sprintf("%s:%d", server, port),
 		RawQuery: query.Encode(),
 	}
-	fmt.Println(u.String())
-	// connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s", server, user, password, port, database)
-	db, err := sql.Open("sqlserver", u.String())
-	if err != nil {
-		return err
-	}
-	defer db.Close()
-
-	if err := db.Ping(); err != nil {
-		return err
-	}
-
-	row := db.QueryRow("SELECT DATABASEPROPERTYEX('BoIsBo', 'Collation') AS Collation")
-	var collation string
-	err = row.Scan(&collation)
-	if err != nil {
-		return err
-	}
-	fmt.Println(collation)
-	return nil
-}
-
-// doItOrFail
-func doItOrFail(timeout <-chan time.Time) (bool, error) {
 
 	tick := time.Tick(500 * time.Millisecond)
 	for {
@@ -60,11 +65,11 @@ func doItOrFail(timeout <-chan time.Time) (bool, error) {
 		case <-timeout:
 			return false, errors.New("timed out")
 		case <-tick:
-			err := connectWithSQLServer()
+			err := connectWithSQLServer(u.String())
 			if err == nil {
 				return true, nil
 			}
-			fmt.Println(err.Error())
+			fmt.Printf(".. %s\n", err.Error())
 		}
 	}
 }
@@ -74,9 +79,9 @@ func main() {
 	timeout := time.After(30 * time.Second)
 	ok, err := doItOrFail(timeout)
 	if err != nil {
-		fmt.Printf("ERROR: %s", err.Error())
+		fmt.Printf("Connection: %s\n", err.Error())
+	} else {
+		fmt.Printf("Connection: %v\n", ok)
 	}
-
-	fmt.Printf("Connection: %v", ok)
 
 }
