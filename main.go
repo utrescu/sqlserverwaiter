@@ -18,16 +18,20 @@ var (
 	database = "BoIsBo"
 )
 
-func connectWithSQLServer(connectionString string) error {
+// Repository defineix els mètodes de comprovació que hi ha d'haver
+type Repository interface {
+	IsAlive() error
+}
 
-	// connString := fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s", server, user, password, port, database)
-	db, err := sql.Open("sqlserver", connectionString)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
+// ServerConnection Defineix una connexió amb SQLServer
+type ServerConnection struct {
+	connection *sql.DB
+}
 
-	if err := db.Ping(); err != nil {
+// IsAlive comprova si hi ha connexió amb la base de dades i si està activa
+func (m *ServerConnection) IsAlive() error {
+
+	if err := m.connection.Ping(); err != nil {
 		if err.Error() == "EOF" {
 			return errors.New("Database not ready")
 		}
@@ -35,9 +39,9 @@ func connectWithSQLServer(connectionString string) error {
 	}
 
 	// When Collation is not null database is ready
-	row := db.QueryRow("SELECT DATABASEPROPERTYEX('BoIsBo', 'Collation') AS Collation")
+	row := m.connection.QueryRow("SELECT DATABASEPROPERTYEX('BoIsBo', 'Collation') AS Collation")
 	var collation string
-	err = row.Scan(&collation)
+	err := row.Scan(&collation)
 	if err != nil {
 		return errors.New("Database not ready")
 	}
@@ -46,8 +50,39 @@ func connectWithSQLServer(connectionString string) error {
 	return nil
 }
 
+// New crea una connexió amb la base de dades
+func New(connectionString string) (Repository, error) {
+	db, err := sql.Open("sqlserver", connectionString)
+	if err != nil {
+		return nil, err
+	}
+
+	sqlconnection := &ServerConnection{
+		connection: db,
+	}
+
+	return sqlconnection, nil
+}
+
 // doItOrFail
-func doItOrFail(timeout <-chan time.Time) (bool, error) {
+func doItOrFail(timeout <-chan time.Time, connexio Repository) (bool, error) {
+
+	tick := time.Tick(500 * time.Millisecond)
+	for {
+		select {
+		case <-timeout:
+			return false, errors.New("timed out")
+		case <-tick:
+			err := connexio.IsAlive()
+			if err == nil {
+				return true, nil
+			}
+			fmt.Printf(".. %s\n", err.Error())
+		}
+	}
+}
+
+func main() {
 
 	query := url.Values{}
 	query.Add("database", database)
@@ -59,25 +94,13 @@ func doItOrFail(timeout <-chan time.Time) (bool, error) {
 		RawQuery: query.Encode(),
 	}
 
-	tick := time.Tick(500 * time.Millisecond)
-	for {
-		select {
-		case <-timeout:
-			return false, errors.New("timed out")
-		case <-tick:
-			err := connectWithSQLServer(u.String())
-			if err == nil {
-				return true, nil
-			}
-			fmt.Printf(".. %s\n", err.Error())
-		}
+	database, err := New(u.String())
+	if err != nil {
+		panic(fmt.Sprintf("Connection: %s", err.Error()))
 	}
-}
 
-func main() {
-	//
 	timeout := time.After(30 * time.Second)
-	ok, err := doItOrFail(timeout)
+	ok, err := doItOrFail(timeout, database)
 	if err != nil {
 		fmt.Printf("Connection: %s\n", err.Error())
 	} else {
