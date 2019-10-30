@@ -36,7 +36,7 @@ Most of the options can be provided with environment vars started with "SQLW\_".
 
 ## Examples
 
-Run the command with SQL Server not started. The app tries to connect with the server until timeout is reached.
+Run the command with SQL Server not started. The app tries to connect until timeout is reached.
 
 ![sqlserver stopped](README/sqlserver-stopped.gif)
 
