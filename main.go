@@ -3,20 +3,12 @@ package main
 import (
 	"database/sql"
 	"errors"
-	"flag"
 	"fmt"
 	"net/url"
 	"time"
 
 	_ "github.com/denisenkom/go-mssqldb"
-)
-
-var (
-	server        = flag.String("server", "localhost", "Database server")
-	port     *int = flag.Int("port", 1433, "Database port")
-	user          = flag.String("user", "sa", "Database user")
-	password      = flag.String("password", "X1nGuXunG1", "Database password")
-	database      = flag.String("database", "BoIsBo", "Database name")
+	"github.com/utrescu/sqlserverwait/cmd"
 )
 
 // RepositoryReady defines methods needed to this program
@@ -34,9 +26,9 @@ func (m *MsSQLConnection) IsAlive() error {
 
 	if err := m.connection.Ping(); err != nil {
 		if err.Error() == "EOF" {
-			return errors.New("Database not ready")
+			return errors.New("database not ready")
 		}
-		return errors.New("Unable to open connection")
+		return err
 	}
 
 	// When Collation is not null database is ready
@@ -44,7 +36,7 @@ func (m *MsSQLConnection) IsAlive() error {
 	var collation string
 	err := row.Scan(&collation)
 	if err != nil {
-		return errors.New("Database not ready")
+		return errors.New("database not ready")
 	}
 
 	// Database ready!!
@@ -68,7 +60,7 @@ func New(connectionString string) (RepositoryReady, error) {
 // doItOrFail tries until database is ready or time is over
 func doItOrFail(timeout <-chan time.Time, connexio RepositoryReady) (bool, error) {
 
-	tick := time.Tick(500 * time.Millisecond)
+	tick := time.Tick(2 * time.Second)
 	for {
 		select {
 		case <-timeout:
@@ -85,25 +77,29 @@ func doItOrFail(timeout <-chan time.Time, connexio RepositoryReady) (bool, error
 
 func main() {
 
-	flag.Parse()
+	cmd.Execute()
 
 	query := url.Values{}
-	query.Add("database", *database)
+	query.Add("database", cmd.Database)
 
 	u := &url.URL{
 		Scheme:   "sqlserver",
-		User:     url.UserPassword(*user, *password),
-		Host:     fmt.Sprintf("%s:%d", *server, *port),
+		User:     url.UserPassword(cmd.User, cmd.Password),
+		Host:     fmt.Sprintf("%s:%d", cmd.Server, cmd.Port),
 		RawQuery: query.Encode(),
 	}
 
-	database, err := New(u.String())
+	if cmd.Debug {
+		fmt.Printf("DEBUG: %s\n", u.String())
+	}
+
+	connect, err := New(u.String())
 	if err != nil {
 		panic(fmt.Sprintf("Connection: %s", err.Error()))
 	}
 
-	timeout := time.After(30 * time.Second)
-	ok, err := doItOrFail(timeout, database)
+	timeout := time.After(cmd.Timeout)
+	ok, err := doItOrFail(timeout, connect)
 	if err != nil {
 		fmt.Printf("Connection: %s\n", err.Error())
 	} else {
