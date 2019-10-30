@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	VERSION = "0.0.1"
+	version = "0.0.2"
 )
 
 var (
@@ -38,7 +38,7 @@ var RootCmd = &cobra.Command{
 	Short:   "Waits until Sql Server is ready or timeout",
 	Long:    "This application waits until a Microsoft SQL Server accepts connections for an specified time",
 	Run:     func(cmd *cobra.Command, args []string) {},
-	Version: VERSION,
+	Version: version,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
