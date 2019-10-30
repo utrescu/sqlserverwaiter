@@ -8,34 +8,27 @@ import (
 	"time"
 
 	_ "github.com/denisenkom/go-mssqldb"
+	"github.com/utrescu/sqlserverwait/cmd"
 )
 
-var (
-	server   = "localhost"
-	user     = "sa"
-	port     = 1433
-	password = "X1nGuXunG1"
-	database = "BoIsBo"
-)
-
-// Repository defineix els mètodes de comprovació que hi ha d'haver
-type Repository interface {
+// RepositoryReady defines methods needed to this program
+type RepositoryReady interface {
 	IsAlive() error
 }
 
-// ServerConnection Defineix una connexió amb SQLServer
-type ServerConnection struct {
+// MsSQLConnection Defines a connection with Sql Server
+type MsSQLConnection struct {
 	connection *sql.DB
 }
 
-// IsAlive comprova si hi ha connexió amb la base de dades i si està activa
-func (m *ServerConnection) IsAlive() error {
+// IsAlive checks if Sql Server is up and accepts connections
+func (m *MsSQLConnection) IsAlive() error {
 
 	if err := m.connection.Ping(); err != nil {
 		if err.Error() == "EOF" {
-			return errors.New("Database not ready")
+			return errors.New("database not ready")
 		}
-		return errors.New("Unable to open connection")
+		return err
 	}
 
 	// When Collation is not null database is ready
@@ -43,31 +36,31 @@ func (m *ServerConnection) IsAlive() error {
 	var collation string
 	err := row.Scan(&collation)
 	if err != nil {
-		return errors.New("Database not ready")
+		return errors.New("database not ready")
 	}
 
 	// Database ready!!
 	return nil
 }
 
-// New crea una connexió amb la base de dades
-func New(connectionString string) (Repository, error) {
+// New creates a connection with Sql Server
+func New(connectionString string) (RepositoryReady, error) {
 	db, err := sql.Open("sqlserver", connectionString)
 	if err != nil {
 		return nil, err
 	}
 
-	sqlconnection := &ServerConnection{
+	sqlconnection := &MsSQLConnection{
 		connection: db,
 	}
 
 	return sqlconnection, nil
 }
 
-// doItOrFail
-func doItOrFail(timeout <-chan time.Time, connexio Repository) (bool, error) {
+// doItOrFail tries until database is ready or time is over
+func doItOrFail(timeout <-chan time.Time, connexio RepositoryReady) (bool, error) {
 
-	tick := time.Tick(500 * time.Millisecond)
+	tick := time.Tick(2 * time.Second)
 	for {
 		select {
 		case <-timeout:
@@ -84,23 +77,29 @@ func doItOrFail(timeout <-chan time.Time, connexio Repository) (bool, error) {
 
 func main() {
 
+	cmd.Execute()
+
 	query := url.Values{}
-	query.Add("database", database)
+	query.Add("database", cmd.Database)
 
 	u := &url.URL{
 		Scheme:   "sqlserver",
-		User:     url.UserPassword(user, password),
-		Host:     fmt.Sprintf("%s:%d", server, port),
+		User:     url.UserPassword(cmd.User, cmd.Password),
+		Host:     fmt.Sprintf("%s:%d", cmd.Server, cmd.Port),
 		RawQuery: query.Encode(),
 	}
 
-	database, err := New(u.String())
+	if cmd.Debug {
+		fmt.Printf("DEBUG: %s\n", u.String())
+	}
+
+	connect, err := New(u.String())
 	if err != nil {
 		panic(fmt.Sprintf("Connection: %s", err.Error()))
 	}
 
-	timeout := time.After(30 * time.Second)
-	ok, err := doItOrFail(timeout, database)
+	timeout := time.After(cmd.Timeout)
+	ok, err := doItOrFail(timeout, connect)
 	if err != nil {
 		fmt.Printf("Connection: %s\n", err.Error())
 	} else {
