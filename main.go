@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"flag"
 	"fmt"
 	"net/url"
 	"time"
@@ -11,11 +12,11 @@ import (
 )
 
 var (
-	server   = "localhost"
-	user     = "sa"
-	port     = 1433
-	password = "X1nGuXunG1"
-	database = "BoIsBo"
+	server        = flag.String("server", "localhost", "Database server")
+	port     *int = flag.Int("port", 1433, "Database port")
+	user          = flag.String("user", "sa", "Database user")
+	password      = flag.String("password", "X1nGuXunG1", "Database password")
+	database      = flag.String("database", "BoIsBo", "Database name")
 )
 
 // RepositoryReady defines methods needed to this program
@@ -84,13 +85,15 @@ func doItOrFail(timeout <-chan time.Time, connexio RepositoryReady) (bool, error
 
 func main() {
 
+	flag.Parse()
+
 	query := url.Values{}
-	query.Add("database", database)
+	query.Add("database", *database)
 
 	u := &url.URL{
 		Scheme:   "sqlserver",
-		User:     url.UserPassword(user, password),
-		Host:     fmt.Sprintf("%s:%d", server, port),
+		User:     url.UserPassword(*user, *password),
+		Host:     fmt.Sprintf("%s:%d", *server, *port),
 		RawQuery: query.Encode(),
 	}
 
