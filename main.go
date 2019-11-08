@@ -32,7 +32,7 @@ func (m *MsSQLConnection) IsAlive() error {
 	}
 
 	// When Collation is not null database is ready
-	row := m.connection.QueryRow("SELECT DATABASEPROPERTYEX('BoIsBo', 'Collation') AS Collation")
+	row := m.connection.QueryRow(fmt.Sprintf("SELECT DATABASEPROPERTYEX('%s', 'Collation') AS Collation", cmd.Database))
 	var collation string
 	err := row.Scan(&collation)
 	if err != nil {
