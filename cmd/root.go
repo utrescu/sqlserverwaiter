@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	version = "0.0.2"
+	version = "1.0.0"
 )
 
 var (
@@ -68,7 +68,7 @@ func init() {
 
 	RootCmd.PersistentFlags().StringVar(&Server, "host", "localhost", "Database server host")
 	RootCmd.PersistentFlags().IntVar(&Port, "port", 1433, "Numeric database port")
-	RootCmd.PersistentFlags().StringVarP(&Database, "database", "d", "BoIsBo", "Database name to connect: ex. BikeStores")
+	RootCmd.PersistentFlags().StringVarP(&Database, "database", "d", "master", "Database name to connect: ex. BikeStores")
 
 	RootCmd.PersistentFlags().StringVarP(&User, "user", "u", "sa", "Database user")
 	RootCmd.PersistentFlags().StringVarP(&Password, "password", "p", "X1nGuXunG1", "Database user password")
