@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"syscall"
 	"time"
 
 	_ "github.com/denisenkom/go-mssqldb"
@@ -26,7 +27,7 @@ func (m *MsSQLConnection) IsAlive() error {
 
 	if err := m.connection.Ping(); err != nil {
 		if err.Error() == "EOF" {
-			return errors.New("database not ready")
+			return errors.New("database ping fails")
 		}
 		return err
 	}
@@ -43,9 +44,24 @@ func (m *MsSQLConnection) IsAlive() error {
 	return nil
 }
 
-// New creates a connection with Sql Server
-func New(connectionString string) (RepositoryReady, error) {
-	db, err := sql.Open("sqlserver", connectionString)
+// NewConnection creates a connection with Sql Server with provided params
+func NewConnection(host string, port int, database string, user string, password string, debug bool) (RepositoryReady, error) {
+
+	query := url.Values{}
+	query.Add("database", database)
+
+	u := &url.URL{
+		Scheme:   "sqlserver",
+		User:     url.UserPassword(user, password),
+		Host:     fmt.Sprintf("%s:%d", host, port),
+		RawQuery: query.Encode(),
+	}
+
+	if debug {
+		fmt.Printf("DEBUG: %s\n", u.String())
+	}
+
+	db, err := sql.Open("sqlserver", u.String())
 	if err != nil {
 		return nil, err
 	}
@@ -79,21 +95,7 @@ func main() {
 
 	cmd.Execute()
 
-	query := url.Values{}
-	query.Add("database", cmd.Database)
-
-	u := &url.URL{
-		Scheme:   "sqlserver",
-		User:     url.UserPassword(cmd.User, cmd.Password),
-		Host:     fmt.Sprintf("%s:%d", cmd.Server, cmd.Port),
-		RawQuery: query.Encode(),
-	}
-
-	if cmd.Debug {
-		fmt.Printf("DEBUG: %s\n", u.String())
-	}
-
-	connect, err := New(u.String())
+	connect, err := NewConnection(cmd.Server, cmd.Port, cmd.Database, cmd.User, cmd.Password, cmd.Debug)
 	if err != nil {
 		panic(fmt.Sprintf("Connection: %s", err.Error()))
 	}
@@ -102,6 +104,7 @@ func main() {
 	ok, err := doItOrFail(timeout, connect)
 	if err != nil {
 		fmt.Printf("Connection: %s\n", err.Error())
+		syscall.Exit(1)
 	} else {
 		fmt.Printf("Connection: %v\n", ok)
 	}
