@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"syscall"
+	"os"
 	"time"
 
 	_ "github.com/denisenkom/go-mssqldb"
@@ -104,7 +104,7 @@ func main() {
 	ok, err := doItOrFail(timeout, connect)
 	if err != nil {
 		fmt.Printf("Connection: %s\n", err.Error())
-		syscall.Exit(1)
+		os.Exit(1)
 	} else {
 		fmt.Printf("Connection: %v\n", ok)
 	}
