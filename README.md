@@ -1,6 +1,6 @@
 # SQLServer wait
 
-This application waits until a Microsoft SQL Server accepts connections for an specified time. I need it for automatization.
+This application waits for an specified time until a Microsoft SQL Server accepts connections. I need it for automatization.
 
 ## Options
 
