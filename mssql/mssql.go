@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"net/url"
 
 	_ "github.com/denisenkom/go-mssqldb" // mssql driver
 	ready "github.com/utrescu/sqlserverwaiter/ready"
@@ -16,15 +17,31 @@ type Connection struct {
 }
 
 // New creates a connection with Sql Server
-func New(connectionString string, name string) (ready.RepositoryReady, error) {
-	db, err := sql.Open("sqlserver", connectionString)
+func New(host string, port int, database string, user string, password string, debug bool) (ready.RepositoryReady, error) {
+
+	// Prepare SQL Connection
+	query := url.Values{}
+	query.Add("database", database)
+
+	u := &url.URL{
+		Scheme:   "sqlserver",
+		User:     url.UserPassword(user, password),
+		Host:     fmt.Sprintf("%s:%d", host, port),
+		RawQuery: query.Encode(),
+	}
+
+	if debug {
+		fmt.Printf("DEBUG: %s\n", u.String())
+	}
+
+	db, err := sql.Open("sqlserver", u.String())
 	if err != nil {
 		return nil, err
 	}
 
 	sqlconnection := &Connection{
 		connection: db,
-		Name:       name,
+		Name:       database,
 	}
 
 	return sqlconnection, nil
@@ -35,7 +52,7 @@ func (m *Connection) IsAlive() error {
 
 	if err := m.connection.Ping(); err != nil {
 		if err.Error() == "EOF" {
-			return errors.New("database not ready")
+			return errors.New("database ping fails")
 		}
 		return err
 	}

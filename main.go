@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"net/url"
+	"os"
 
 	"github.com/utrescu/sqlserverwaiter/cmd"
 	mssql "github.com/utrescu/sqlserverwaiter/mssql"
@@ -13,28 +13,14 @@ func main() {
 
 	cmd.Execute()
 
-	// Prepare SQL Connection
-	query := url.Values{}
-	query.Add("database", cmd.Database)
-
-	u := &url.URL{
-		Scheme:   "sqlserver",
-		User:     url.UserPassword(cmd.User, cmd.Password),
-		Host:     fmt.Sprintf("%s:%d", cmd.Server, cmd.Port),
-		RawQuery: query.Encode(),
-	}
-
-	if cmd.Debug {
-		fmt.Printf("DEBUG: %s\n", u.String())
-	}
-
-	connect, err := mssql.New(u.String(), cmd.Database)
+	connect, err := mssql.New(cmd.Server, cmd.Port, cmd.Database, cmd.User, cmd.Password, cmd.Debug)
 	if err != nil {
 		panic(fmt.Sprintf("Connection: %s", err.Error()))
 	}
 
 	if ready.Check(cmd.Timeout, connect) != nil {
 		fmt.Printf("Connection: %s\n", err.Error())
+		os.Exit(1)
 	} else {
 		fmt.Println("Ok")
 	}
