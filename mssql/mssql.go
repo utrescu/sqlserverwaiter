@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	_ "github.com/denisenkom/go-mssqldb"
-	"github.com/utrescu/sqlserverwait/cmd"
+	_ "github.com/denisenkom/go-mssqldb" // mssql driver
 	database "github.com/utrescu/sqlserverwait/db"
+	"github.com/utrescu/sqlserverwaiter/cmd"
 )
 
 // Connection Defines a connection with Sql Server
