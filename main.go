@@ -7,9 +7,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/utrescu/sqlserverwait/cmd"
-	database "github.com/utrescu/sqlserverwait/db"
-	mssql "github.com/utrescu/sqlserverwait/mssql"
+	"github.com/utrescu/sqlserverwaiter/cmd"
+	database "github.com/utrescu/sqlserverwaiter/db"
+	mssql "github.com/utrescu/sqlserverwaiter/mssql"
 )
 
 // doItOrFail tries until database is ready or time is over

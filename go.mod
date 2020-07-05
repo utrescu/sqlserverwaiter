@@ -1,4 +1,4 @@
-module github.com/utrescu/sqlserverwait
+module github.com/utrescu/sqlserverwaiter
 
 go 1.14
 
