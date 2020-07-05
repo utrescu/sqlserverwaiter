@@ -8,32 +8,16 @@ import (
 	"time"
 
 	"github.com/utrescu/sqlserverwaiter/cmd"
-	database "github.com/utrescu/sqlserverwaiter/db"
+	ready "github.com/utrescu/sqlserverwaiter/ready"
 	mssql "github.com/utrescu/sqlserverwaiter/mssql"
 )
 
-// doItOrFail tries until database is ready or time is over
-func doItOrFail(timeout <-chan time.Time, connexio database.RepositoryReady) (bool, error) {
-
-	tick := time.Tick(2 * time.Second)
-	for {
-		select {
-		case <-timeout:
-			return false, errors.New("timed out")
-		case <-tick:
-			err := connexio.IsAlive()
-			if err == nil {
-				return true, nil
-			}
-			fmt.Printf(".. %s\n", err.Error())
-		}
-	}
-}
 
 func main() {
 
 	cmd.Execute()
 
+	// Prepare SQL Connection
 	query := url.Values{}
 	query.Add("database", cmd.Database)
 
@@ -48,18 +32,17 @@ func main() {
 		fmt.Printf("DEBUG: %s\n", u.String())
 	}
 
-	connect, err := mssql.New(u.String())
+	connect, err := mssql.New(u.String(), cmd.Database)
 	if err != nil {
 		panic(fmt.Sprintf("Connection: %s", err.Error()))
 	}
 
-	timeout := time.After(cmd.Timeout)
-	ok, err := doItOrFail(timeout, connect)
-	if err != nil {
+	result, err := ready.Check(cmd.Timeout, connect)
+	if (err != nil) {
 		fmt.Printf("Connection: %s\n", err.Error())
-		os.Exit(1)
-	} else {
-		fmt.Printf("Connection: %v\n", ok)
 	}
-
+	else
+	{
+		fmt.Println("Ok")
+	}
 }

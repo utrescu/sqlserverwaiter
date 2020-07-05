@@ -1,4 +1,4 @@
-package database
+package ready
 
 // RepositoryReady defines methods needed to this program
 type RepositoryReady interface {

@@ -6,17 +6,17 @@ import (
 	"fmt"
 
 	_ "github.com/denisenkom/go-mssqldb" // mssql driver
-	database "github.com/utrescu/sqlserverwait/db"
-	"github.com/utrescu/sqlserverwaiter/cmd"
+	ready "github.com/utrescu/sqlserverwait/ready"
 )
 
 // Connection Defines a connection with Sql Server
 type Connection struct {
 	connection *sql.DB
+	Name       string
 }
 
 // New creates a connection with Sql Server
-func New(connectionString string) (database.RepositoryReady, error) {
+func New(connectionString string, name string) (ready.RepositoryReady, error) {
 	db, err := sql.Open("sqlserver", connectionString)
 	if err != nil {
 		return nil, err
@@ -24,6 +24,7 @@ func New(connectionString string) (database.RepositoryReady, error) {
 
 	sqlconnection := &Connection{
 		connection: db,
+		Name:       name,
 	}
 
 	return sqlconnection, nil
@@ -40,7 +41,7 @@ func (m *Connection) IsAlive() error {
 	}
 
 	// When Collation is not null database is ready
-	row := m.connection.QueryRow(fmt.Sprintf("SELECT DATABASEPROPERTYEX('%s', 'Collation') AS Collation", cmd.Database))
+	row := m.connection.QueryRow(fmt.Sprintf("SELECT DATABASEPROPERTYEX('%s', 'Collation') AS Collation", m.Name))
 	var collation string
 	err := row.Scan(&collation)
 	if err != nil {
