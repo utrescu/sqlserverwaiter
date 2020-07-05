@@ -1,64 +1,19 @@
 package main
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"net/url"
+	"os"
 	"time"
 
-	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/utrescu/sqlserverwait/cmd"
+	database "github.com/utrescu/sqlserverwait/db"
+	mssql "github.com/utrescu/sqlserverwait/mssql"
 )
 
-// RepositoryReady defines methods needed to this program
-type RepositoryReady interface {
-	IsAlive() error
-}
-
-// MsSQLConnection Defines a connection with Sql Server
-type MsSQLConnection struct {
-	connection *sql.DB
-}
-
-// IsAlive checks if Sql Server is up and accepts connections
-func (m *MsSQLConnection) IsAlive() error {
-
-	if err := m.connection.Ping(); err != nil {
-		if err.Error() == "EOF" {
-			return errors.New("database not ready")
-		}
-		return err
-	}
-
-	// When Collation is not null database is ready
-	row := m.connection.QueryRow(fmt.Sprintf("SELECT DATABASEPROPERTYEX('%s', 'Collation') AS Collation", cmd.Database))
-	var collation string
-	err := row.Scan(&collation)
-	if err != nil {
-		return errors.New("database not ready")
-	}
-
-	// Database ready!!
-	return nil
-}
-
-// New creates a connection with Sql Server
-func New(connectionString string) (RepositoryReady, error) {
-	db, err := sql.Open("sqlserver", connectionString)
-	if err != nil {
-		return nil, err
-	}
-
-	sqlconnection := &MsSQLConnection{
-		connection: db,
-	}
-
-	return sqlconnection, nil
-}
-
 // doItOrFail tries until database is ready or time is over
-func doItOrFail(timeout <-chan time.Time, connexio RepositoryReady) (bool, error) {
+func doItOrFail(timeout <-chan time.Time, connexio database.RepositoryReady) (bool, error) {
 
 	tick := time.Tick(2 * time.Second)
 	for {
@@ -93,7 +48,7 @@ func main() {
 		fmt.Printf("DEBUG: %s\n", u.String())
 	}
 
-	connect, err := New(u.String())
+	connect, err := mssql.New(u.String())
 	if err != nil {
 		panic(fmt.Sprintf("Connection: %s", err.Error()))
 	}
@@ -102,6 +57,7 @@ func main() {
 	ok, err := doItOrFail(timeout, connect)
 	if err != nil {
 		fmt.Printf("Connection: %s\n", err.Error())
+		os.Exit(1)
 	} else {
 		fmt.Printf("Connection: %v\n", ok)
 	}
