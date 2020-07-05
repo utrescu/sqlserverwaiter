@@ -6,17 +6,22 @@ import (
 	"time"
 )
 
-func doItOrFail(timeout <-chan time.Time, connexio RepositoryReady) (bool, error) {
+// RepositoryReady defines methods needed to this program
+type RepositoryReady interface {
+	IsAlive() error
+}
+
+func doItOrFail(timeout <-chan time.Time, connexio RepositoryReady) error {
 
 	tick := time.Tick(2 * time.Second)
 	for {
 		select {
 		case <-timeout:
-			return false, errors.New("timed out")
+			return errors.New("timed out")
 		case <-tick:
 			err := connexio.IsAlive()
 			if err == nil {
-				return true, nil
+				return nil
 			}
 			fmt.Printf(".. %s\n", err.Error())
 		}
@@ -24,11 +29,11 @@ func doItOrFail(timeout <-chan time.Time, connexio RepositoryReady) (bool, error
 }
 
 // Check determines when the repository is ready or timeouts
-func Check(maxTime time.Duration, connection RepositoryReady) (bool, error) {
+func Check(maxTime time.Duration, connection RepositoryReady) error {
 	timeout := time.After(maxTime)
-	ok, err := doItOrFail(timeout, connection)
+	err := doItOrFail(timeout, connection)
 	if err != nil {
-		return false, err
+		return err
 	}
-	return true, nil
+	return nil
 }

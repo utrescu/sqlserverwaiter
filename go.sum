@@ -196,6 +196,8 @@ github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGr
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/utrescu/sqlserverwaiter/mssql v0.0.0-20200705112429-2bdc31ceffa2 h1:WQvb/+IIhE4SZ5GzGcYUBMW0n3bPla3CQE+QIUxCsKc=
 github.com/utrescu/sqlserverwaiter/mssql v0.0.0-20200705112429-2bdc31ceffa2/go.mod h1:nPjb/+h0tnfSWqOlCtPgrnB3bw5aafvtLfKJOSDE6RA=
+github.com/utrescu/sqlserverwaiter/mssql v0.0.0-20200705112917-df98a2002be5 h1:bG3hwJRThVmOX6LnUL90x0JMrN/Wh/ACUqMveQ7e1Ns=
+github.com/utrescu/sqlserverwaiter/mssql v0.0.0-20200705112917-df98a2002be5/go.mod h1:hDPOEO8NwOhJgxWFzBVrViE8K/WHYq3k3iqUTPvenzg=
 github.com/utrescu/sqlserverwaiter/ready v0.0.0-20200705112429-2bdc31ceffa2 h1:zA2m57AbjfNWSzG4+U2/uEEjvgdPmkhbDEndDSjiS0U=
 github.com/utrescu/sqlserverwaiter/ready v0.0.0-20200705112429-2bdc31ceffa2/go.mod h1:t29vgYTHO0RaKR7KNyg2wmYtSmUDbhewHt9LxKTIdW4=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=

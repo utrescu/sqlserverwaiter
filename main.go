@@ -1,17 +1,13 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
-	"os"
-	"time"
 
 	"github.com/utrescu/sqlserverwaiter/cmd"
-	ready "github.com/utrescu/sqlserverwaiter/ready"
 	mssql "github.com/utrescu/sqlserverwaiter/mssql"
+	ready "github.com/utrescu/sqlserverwaiter/ready"
 )
-
 
 func main() {
 
@@ -37,12 +33,9 @@ func main() {
 		panic(fmt.Sprintf("Connection: %s", err.Error()))
 	}
 
-	result, err := ready.Check(cmd.Timeout, connect)
-	if (err != nil) {
+	if ready.Check(cmd.Timeout, connect) != nil {
 		fmt.Printf("Connection: %s\n", err.Error())
-	}
-	else
-	{
+	} else {
 		fmt.Println("Ok")
 	}
 }
