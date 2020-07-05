@@ -40,6 +40,6 @@ Run the command with SQL Server not started. The app tries to connect until time
 
 ![sqlserver stopped](README/sqlserver-stopped.gif)
 
-When SQL Server is started waits until accepts connections
+SQL Server can be started but not accepting connections. Sqlserverwaiter waits until it accepts connections
 
 ![sqlserver starts](README/sqlserver-started.gif)
