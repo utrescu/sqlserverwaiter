@@ -1,0 +1,7 @@
+github.com/denisenkom/go-mssqldb v0.0.0-20200620013148-b91950f658ec/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
+github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe/go.mod h1:8vg3r2VgvsThLBIFL93Qb5yWzgyZWhEmBwUJWevAkK0=
+github.com/utrescu/sqlserverwaiter v1.0.1-0.20200705112429-2bdc31ceffa2 h1:Y0Rliy7iknKOuG/2HyCYyWhAPR5qta2qrHedMFPiCqQ=
+github.com/utrescu/sqlserverwaiter/ready v0.0.0-20200705112429-2bdc31ceffa2 h1:zA2m57AbjfNWSzG4+U2/uEEjvgdPmkhbDEndDSjiS0U=
+github.com/utrescu/sqlserverwaiter/ready v0.0.0-20200705112429-2bdc31ceffa2/go.mod h1:t29vgYTHO0RaKR7KNyg2wmYtSmUDbhewHt9LxKTIdW4=
+golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
+golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=

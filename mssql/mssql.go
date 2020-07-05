@@ -6,7 +6,7 @@ import (
 	"fmt"
 
 	_ "github.com/denisenkom/go-mssqldb" // mssql driver
-	ready "github.com/utrescu/sqlserverwait/ready"
+	ready "github.com/utrescu/sqlserverwaiter/ready"
 )
 
 // Connection Defines a connection with Sql Server
