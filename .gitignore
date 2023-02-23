@@ -4,3 +4,6 @@
 sqlserverwait
 .vscode
 .idea
+dist
+
+dist/
